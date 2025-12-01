@@ -185,5 +185,9 @@
     "Min FPS Text Color": "最小 FPS 文字颜色",
     "Main Line Color": "主线颜色",
     "Rounded Line Color": "圆角线颜色",
-    "Perfect Line Color": "完美线颜色"
+    "Perfect Line Color": "完美线颜色",
+    "DTC": "时间",
+    "BAT": "电池",
+    "RAM": "内存",
+    "Temperatures": "温度"
 }

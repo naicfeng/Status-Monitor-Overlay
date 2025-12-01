@@ -25,13 +25,13 @@ private:
     char RAM_load_c[64] = "";
     char Resolutions_c[64] = "";
     char readSpeed_c[32] = "";
-    
+
     // New separated value buffers for CPU cores
     char CPU_Core0_c[16] = "";
     char CPU_Core1_c[16] = "";
     char CPU_Core2_c[16] = "";
     char CPU_Core3_c[16] = "";
-    
+
     // New separated value buffers for FPS
     char PFPS_value_c[16] = "";
     char FPS_value_c[16] = "";
@@ -54,7 +54,7 @@ private:
 
     bool originalUseRightAlignment = ult::useRightAlignment;
 public:
-    FullOverlay() { 
+    FullOverlay() {
         disableJumpTo = true;
         GetConfigSettings(&settings);
         mutexInit(&mutex_BatteryChecker);
@@ -100,7 +100,7 @@ public:
     uint8_t resolutionLookup = 0;
 
     virtual tsl::elm::Element* createUI() override {
-        
+
 
         auto Status = new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
             //static auto targetFreqWidth = renderer->getTextDimensions("Target Frequency", false, 15).first;
@@ -143,30 +143,30 @@ public:
                 else if (realCPU_Hz && settings.showDeltas && (settings.showRealFreqs || settings.showTargetFreqs)) {
                     renderer->drawString(DeltaCPU_c, false, COMMON_MARGIN +  deltaOffset, height_offset, 15, (settings.textColor));
                 }
-                
+
                 // CPU Core labels and values
                 static auto core0Width = renderer->getTextDimensions("Core 0  ", false, 15).first;
                 static auto core1Width = renderer->getTextDimensions("Core 1  ", false, 15).first;
                 static auto core2Width = renderer->getTextDimensions("Core 2  ", false, 15).first;
                 static auto core3Width = renderer->getTextDimensions("Core 3  ", false, 15).first;
-                
+
                 const uint32_t core_height = height_offset + 30;
                 renderer->drawString("Core 0  ", false, COMMON_MARGIN, core_height, 15, (settings.catColor2));
                 renderer->drawString(CPU_Core0_c, false, COMMON_MARGIN + core0Width, core_height, 15, (settings.textColor));
-                
+
                 renderer->drawString("Core 1  ", false, COMMON_MARGIN, core_height + 15, 15, (settings.catColor2));
                 renderer->drawString(CPU_Core1_c, false, COMMON_MARGIN + core1Width, core_height + 15, 15, (settings.textColor));
-                
+
                 renderer->drawString("Core 2  ", false, COMMON_MARGIN, core_height + 30, 15, (settings.catColor2));
                 renderer->drawString(CPU_Core2_c, false, COMMON_MARGIN + core2Width, core_height + 30, 15, (settings.textColor));
-                
+
                 renderer->drawString("Core 3  ", false, COMMON_MARGIN, core_height + 45, 15, (settings.catColor2));
                 renderer->drawString(CPU_Core3_c, false, COMMON_MARGIN + core3Width, core_height + 45, 15, (settings.textColor));
             }
-            
+
             ///GPU
             if (R_SUCCEEDED(clkrstCheck) || R_SUCCEEDED(pcvCheck) || R_SUCCEEDED(nvCheck)) {
-                
+
                 uint32_t height_offset = 320-8;
                 if (realGPU_Hz && settings.showRealFreqs) {
                     height_offset = 327-8;
@@ -174,7 +174,7 @@ public:
 
                 renderer->drawString("GPU Usage", false, COMMON_MARGIN, 285-8, 20, (settings.catColor1));
                 if (R_SUCCEEDED(clkrstCheck) || R_SUCCEEDED(pcvCheck)) {
-                    if (settings.showTargetFreqs) { 
+                    if (settings.showTargetFreqs) {
                         //static auto targetFreqWidth = renderer->getTextDimensions("Target Frequency: ", false, 15).first;
                         renderer->drawString("Target Frequency", false, COMMON_MARGIN, height_offset, 15, (settings.catColor2));
                         renderer->drawString(GPU_Hz_c, false, COMMON_MARGIN + valueOffset, height_offset, 15, (settings.textColor));
@@ -199,14 +199,14 @@ public:
                     renderer->drawString("Load", false, COMMON_MARGIN, height_offset + 15, 15, (settings.catColor2));
                     renderer->drawString(GPU_Load_c, false, COMMON_MARGIN + valueOffset, height_offset + 15, 15, (settings.textColor));
                 }
-                
+
             }
 
             static std::vector<std::string> specialChars = {""};
-            
+
             ///RAM
             if (R_SUCCEEDED(clkrstCheck) || R_SUCCEEDED(pcvCheck) || R_SUCCEEDED(Hinted)) {
-                
+
                 uint32_t height_offset = 410;
                 if (realRAM_Hz && settings.showRealFreqs) {
                     height_offset += 7;
@@ -247,7 +247,7 @@ public:
                     renderer->drawString(RAM_percentage_var_compressed_c, false, ramPercentageOffset, height_offset + 40, 15, (settings.textColor));
                 }
             }
-            
+
             ///Thermal
             if (R_SUCCEEDED(i2cCheck) || R_SUCCEEDED(tcCheck) || R_SUCCEEDED(pwmCheck)) {
                 renderer->drawString("Board", false, 20, 550+2, 20, (settings.catColor1));
@@ -264,26 +264,26 @@ public:
                     static auto pcbLabelWidth = renderer->getTextDimensions("PCB  ", false, 15).first;
                     static auto maxLabelWidth = std::max(socLabelWidth, pcbLabelWidth);
                     static auto skinLabelWidth = renderer->getTextDimensions("Skin  ", false, 15).first;
-                    
+
                     // Compute gradient colors for temperatures
                     const tsl::Color socColor = settings.useDynamicColors ? tsl::GradientColor(SOC_temperatureF) : settings.textColor;
                     const tsl::Color pcbColor = settings.useDynamicColors ? tsl::GradientColor(PCB_temperatureF) : settings.textColor;
                     const tsl::Color skinColor = settings.useDynamicColors ? tsl::GradientColor(static_cast<float>(skin_temperaturemiliC) / 1000.0f) : settings.textColor;
-                    
+
                     renderer->drawString("Temperatures", false, COMMON_MARGIN, 605+2, 15, (settings.catColor2));
-                    
+
                     // SOC - starts at valueOffset next to "Temperatures"
                     uint32_t current_x = COMMON_MARGIN + valueOffset;
                     renderer->drawString("SOC  ", false, current_x, 605+2, 15, (settings.catColor2));
                     current_x += maxLabelWidth;
                     renderer->drawString(SOC_temperature_c, false, current_x, 605+2, 15, socColor);
-                    
+
                     // SKIN - same spacing to the right
                     current_x += renderer->getTextDimensions(SOC_temperature_c, false, 15).first + 15;
                     renderer->drawString("Skin  ", false, current_x, 605+2, 15, (settings.catColor2));
                     current_x += skinLabelWidth;
                     renderer->drawString(skin_temperature_c, false, current_x, 605+2, 15, skinColor);
-                    
+
                     // PCB - below SOC on next line
                     current_x = COMMON_MARGIN + valueOffset;
                     renderer->drawString("PCB  ", false, current_x, 620+2, 15, (settings.catColor2));
@@ -291,7 +291,7 @@ public:
                     renderer->drawString(PCB_temperature_c, false, current_x, 620+2, 15, pcbColor);
                 }
             }
-            
+
             ///FPS
             if (GameRunning) {
                 const uint32_t width_offset = valueOffset;
@@ -302,21 +302,21 @@ public:
                 if (settings.showFPS == true) {
                     static auto pfpsWidth = renderer->getTextDimensions("PFPS  ", false, 15).first;
                     static auto fpsWidth = renderer->getTextDimensions("FPS  ", false, 15).first;
-                    
+
                     renderer->drawString("PFPS  ", false, COMMON_MARGIN + width_offset, height, 15, (settings.catColor2));
                     renderer->drawString(PFPS_value_c, false, COMMON_MARGIN + width_offset + pfpsWidth, height, 15, (settings.textColor));
-                    
+
                     // Calculate position for "FPS " label - add some spacing
                     const uint32_t fps_x_offset = COMMON_MARGIN + width_offset + pfpsWidth + renderer->getTextDimensions(PFPS_value_c, false, 15).first + 15;
                     renderer->drawString("FPS  ", false, fps_x_offset, height, 15, (settings.catColor2));
                     renderer->drawString(FPS_value_c, false, fps_x_offset + fpsWidth, height, 15, (settings.textColor));
-                    
+
                     height += 15;
                 }
                 if ((settings.showRES == true) && NxFps && SharedMemoryUsed && (NxFps -> API >= 1)) {
                     static auto resLabelWidth = renderer->getTextDimensions("Resolutions  ", false, 15).first;
                     renderer->drawString("Resolutions  ", false, COMMON_MARGIN + width_offset, height, 15, (settings.catColor2));
-                    
+
                     renderer->drawStringWithColoredSections(Resolutions_c, false, specialChars, COMMON_MARGIN + width_offset + resLabelWidth, height, 15, (settings.textColor), settings.separatorColor);
                     height += 15;
                 }
@@ -326,27 +326,27 @@ public:
                     renderer->drawString(readSpeed_c, false, COMMON_MARGIN + width_offset + readLabelWidth, height, 15, (settings.textColor));
                 }
             }
-            
+
             //renderer->drawStringWithColoredSections(message, false, KEY_SYMBOLS, 30, 693, 23,  a(tsl::bottomTextColor), a(tsl::buttonColor));
-            
+
 
             static const auto pressWidth = renderer->getTextDimensions("Press ", false, 23).first;
             static const auto keyComboWidth = renderer->getTextDimensions(formattedKeyCombo.c_str(), false, 23).first;
-            
+
             static constexpr u16 baseX = 30;
             static constexpr u16 baseY = 693;
             static constexpr u8 fontSize = 23;
 
             // Draw "Press "
             renderer->drawString("Press ", false, baseX, baseY, fontSize, (tsl::bottomTextColor));
-            
+
             // Draw formatted key combo with colored sections
             renderer->drawStringWithColoredSections(formattedKeyCombo, false, KEY_SYMBOLS, baseX + pressWidth, baseY, fontSize, (tsl::bottomTextColor), (tsl::buttonColor));
-            
+
             // Draw " to Exit"
             renderer->drawString(" to Exit", false, baseX + pressWidth + keyComboWidth, baseY, fontSize, (tsl::bottomTextColor));
         });
-        
+
         auto rootFrame = new tsl::elm::HeaderOverlayFrame("Status Monitor", APP_VERSION);
         rootFrame->setContent(Status);
 
@@ -361,12 +361,12 @@ public:
            const uint64_t idle1_val = std::min(idletick1.load(std::memory_order_acquire), systemtickfrequency_impl);
            const uint64_t idle2_val = std::min(idletick2.load(std::memory_order_acquire), systemtickfrequency_impl);
            const uint64_t idle3_val = std::min(idletick3.load(std::memory_order_acquire), systemtickfrequency_impl);
-           
+
            const float usage0 = std::clamp(100.0f * (1.0f - float(idle0_val) / systemtickfrequency_impl), 0.0f, 100.0f);
            const float usage1 = std::clamp(100.0f * (1.0f - float(idle1_val) / systemtickfrequency_impl), 0.0f, 100.0f);
            const float usage2 = std::clamp(100.0f * (1.0f - float(idle2_val) / systemtickfrequency_impl), 0.0f, 100.0f);
            const float usage3 = std::clamp(100.0f * (1.0f - float(idle3_val) / systemtickfrequency_impl), 0.0f, 100.0f);
-           
+
            // Format individual core values
            snprintf(CPU_Core0_c, sizeof(CPU_Core0_c), "%.2f%%", usage0);
            snprintf(CPU_Core1_c, sizeof(CPU_Core1_c), "%.2f%%", usage1);
@@ -381,7 +381,7 @@ public:
             const int32_t deltaCPU = (int32_t)(realCPU_Hz / 1000) - (CPU_Hz / 1000);
             snprintf(DeltaCPU_c, sizeof(DeltaCPU_c), "Δ %d.%u", deltaCPU / 1000, abs(deltaCPU / 100) % 10);
         }
-        
+
         ///GPU
         snprintf(GPU_Hz_c, sizeof GPU_Hz_c, "%u.%u MHz", GPU_Hz / 1000000, (GPU_Hz / 100000) % 10);
         if (realGPU_Hz) {
@@ -390,7 +390,7 @@ public:
             snprintf(DeltaGPU_c, sizeof(DeltaGPU_c), "Δ %d.%u", deltaGPU / 1000, abs(deltaGPU / 100) % 10);
         }
         snprintf(GPU_Load_c, sizeof GPU_Load_c, "%u.%u%%", GPU_Load_u / 10, GPU_Load_u % 10);
-        
+
         ///RAM
         snprintf(RAM_Hz_c, sizeof RAM_Hz_c, "%u.%u MHz", RAM_Hz / 1000000, (RAM_Hz / 100000) % 10);
         if (realRAM_Hz) {
@@ -404,20 +404,20 @@ public:
         const float RAM_Total_system_f         = (float)RAM_Total_system_u / 1024 / 1024;
         const float RAM_Total_systemunsafe_f   = (float)RAM_Total_systemunsafe_u / 1024 / 1024;
         const float RAM_Total_all_f            = RAM_Total_application_f + RAM_Total_applet_f + RAM_Total_system_f + RAM_Total_systemunsafe_f;
-        
+
         const float RAM_Used_application_f     = (float)RAM_Used_application_u / 1024 / 1024;
         const float RAM_Used_applet_f          = (float)RAM_Used_applet_u / 1024 / 1024;
         const float RAM_Used_system_f          = (float)RAM_Used_system_u / 1024 / 1024;
         const float RAM_Used_systemunsafe_f    = (float)RAM_Used_systemunsafe_u / 1024 / 1024;
         const float RAM_Used_all_f             = RAM_Used_application_f + RAM_Used_applet_f + RAM_Used_system_f + RAM_Used_systemunsafe_f;
-        
+
         // Compute percentages
         const int RAMPct_all          = (int)((RAM_Used_all_f          / RAM_Total_all_f)        * 100.0f );
         const int RAMPct_app          = (int)((RAM_Used_application_f / RAM_Total_application_f) * 100.0f );
         const int RAMPct_applet       = (int)((RAM_Used_applet_f      / RAM_Total_applet_f)      * 100.0f );
         const int RAMPct_system       = (int)((RAM_Used_system_f      / RAM_Total_system_f)      * 100.0f );
         const int RAMPct_systemunsafe = (int)((RAM_Used_systemunsafe_f/ RAM_Total_systemunsafe_f)* 100.0f );
-        
+
         snprintf(RAM_var_compressed_c, sizeof(RAM_var_compressed_c),
             "%.1f MB / %.1f MB\n"
             "%.1f MB / %.1f MB\n"
@@ -430,7 +430,7 @@ public:
             RAM_Used_system_f,       RAM_Total_system_f,
             RAM_Used_systemunsafe_f, RAM_Total_systemunsafe_f
         );
-        
+
         // 2. Percentages only (newlines preserved)
         snprintf(RAM_percentage_var_compressed_c, sizeof(RAM_percentage_var_compressed_c),
             "(%d%%)\n"
@@ -444,22 +444,22 @@ public:
             RAMPct_system,
             RAMPct_systemunsafe
         );
-        
+
         if (R_SUCCEEDED(sysclkCheck)) {
             const int RAM_GPU_Load = ramLoad[SysClkRamLoad_All] - ramLoad[SysClkRamLoad_Cpu];
-            snprintf(RAM_load_c, sizeof RAM_load_c, 
+            snprintf(RAM_load_c, sizeof RAM_load_c,
                 "%u.%u%%    CPU  %u.%u%%   GPU  %u.%u%%",
                 ramLoad[SysClkRamLoad_All] / 10, ramLoad[SysClkRamLoad_All] % 10,
                 ramLoad[SysClkRamLoad_Cpu] / 10, ramLoad[SysClkRamLoad_Cpu] % 10,
                 RAM_GPU_Load / 10, RAM_GPU_Load % 10);
         }
         ///Thermal
-        snprintf(SOC_temperature_c, sizeof SOC_temperature_c, "%.1f\u00B0C", SOC_temperatureF);
-        snprintf(PCB_temperature_c, sizeof PCB_temperature_c, "%.1f\u00B0C", PCB_temperatureF);
-        snprintf(skin_temperature_c, sizeof skin_temperature_c, "%d.%d\u00B0C", skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10);
+        snprintf(SOC_temperature_c, sizeof SOC_temperature_c, "%.1f\u2103", SOC_temperatureF);
+        snprintf(PCB_temperature_c, sizeof PCB_temperature_c, "%.1f\u2103", PCB_temperatureF);
+        snprintf(skin_temperature_c, sizeof skin_temperature_c, "%d.%d\u2103", skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10);
 
         snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%.1f%%", Rotation_Duty);
-        
+
         ///FPS
         if (settings.showFPS == true) {
             snprintf(PFPS_value_c, sizeof PFPS_value_c, "%1u", FPS);
@@ -527,7 +527,7 @@ public:
                             m_resolutionOutput[out_iter].width = m_resolutionViewportCalls[x].width;
                             m_resolutionOutput[out_iter].height = m_resolutionViewportCalls[x].height;
                             m_resolutionOutput[out_iter].calls = m_resolutionViewportCalls[x].calls;
-                            out_iter++;         
+                            out_iter++;
                         }
                         found = false;
                         if (out_iter == 8) break;
@@ -535,10 +535,10 @@ public:
                 }
                 qsort(m_resolutionOutput, 8, sizeof(resolutionCalls), compare);
                 static std::pair<uint16_t, uint16_t> old_res[2];
-                
+
                 // Only swap if BOTH resolutions exist (prevent swapping with empty slot)
                 if (m_resolutionOutput[0].width && m_resolutionOutput[1].width) {
-                    if ((m_resolutionOutput[0].width == old_res[1].first && m_resolutionOutput[0].height == old_res[1].second) || 
+                    if ((m_resolutionOutput[0].width == old_res[1].first && m_resolutionOutput[0].height == old_res[1].second) ||
                         (m_resolutionOutput[1].width == old_res[0].first && m_resolutionOutput[1].height == old_res[0].second)) {
                         const uint16_t swap_width = m_resolutionOutput[0].width;
                         const uint16_t swap_height = m_resolutionOutput[0].height;
@@ -548,7 +548,7 @@ public:
                         m_resolutionOutput[1].height = swap_height;
                     }
                 }
-                
+
                 //if (!m_resolutionOutput[1].width) {
                 //    snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height);
                 //}
@@ -562,7 +562,7 @@ public:
                     else snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d", m_resolutionOutput[1].width, m_resolutionOutput[1].height);
                 }
                 else snprintf(Resolutions_c, sizeof(Resolutions_c),"%dx%d%dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height, m_resolutionOutput[1].width, m_resolutionOutput[1].height);
-                
+
                 old_res[0] = std::make_pair(m_resolutionOutput[0].width, m_resolutionOutput[0].height);
                 old_res[1] = std::make_pair(m_resolutionOutput[1].width, m_resolutionOutput[1].height);
             }
@@ -579,13 +579,13 @@ public:
 
         /* ── Battery / power draw ───────────────────────────────────── */
         char remainingBatteryLife[8];
-        
+
         /* Normalise "-0.00" → "0.00" W */
         const float drawW = (fabsf(PowerConsumption) < 0.01f) ? 0.0f
                                                          : PowerConsumption;
-        
+
         mutexLock(&mutex_BatteryChecker);
-        
+
         /* keep "--:--" whenever estimate is negative */
         if (batTimeEstimate >= 0 && !(drawW <= 0.01f && drawW >= -0.01f)) {
             snprintf(remainingBatteryLife, sizeof(remainingBatteryLife),
@@ -593,17 +593,17 @@ public:
         } else {
             strcpy(remainingBatteryLife, "--:--");
         }
-        
+
         const float batteryPercent = (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f;
-        
+
         snprintf(BatteryDraw_c, sizeof(BatteryDraw_c),
                  "%.2f W%.0f%% [%s]",
                  drawW,
                  batteryPercent,
                  remainingBatteryLife);
-        
+
         mutexUnlock(&mutex_BatteryChecker);
-        
+
         if (!skipOnce) {
             if (runOnce) {
                 isRendering = true;
