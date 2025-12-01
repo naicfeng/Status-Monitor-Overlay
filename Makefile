@@ -37,7 +37,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   of a homebrew executable (.nro). This is intended to be used for sysmodules.
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
-APP_TITLE	:=	Status Monitor
+APP_TITLE	:=	StatusMonitor
 APP_VERSION	:=	1.3.2+r1
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
@@ -189,24 +189,19 @@ all: $(BUILD)
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@rm -rf out/
-	@mkdir -p out/switch/.overlays/
-	@cp -a $(CURDIR)/config out/
-	@cp $(CURDIR)/$(TARGET).ovl out/switch/.overlays/$(TARGET).ovl
+	@rm -rf $(CURDIR)/SdOut/
+	@mkdir -p $(CURDIR)/SdOut/switch/.overlays/
+	@cp -a $(CURDIR)/config $(CURDIR)/SdOut/
+	@cp $(CURDIR)/$(TARGET).ovl $(CURDIR)/SdOut/switch/.overlays/$(TARGET).ovl
+	@cd $(CURDIR)/SdOut; zip -r -q -9 $(APP_TITLE).zip switch config; cd $(CURDIR)
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo "Cleanning ... $(TARGET)"
-	@rm -fr $(BUILD) $(TARGET).ovl $(TARGET).nro $(TARGET).nacp $(TARGET).elf
-	@rm -rf out/
-	@rm -f $(TARGET).zip
+	@rm -fr $(BUILD) $(TARGET).ovl $(TARGET).nro $(TARGET).nacp $(TARGET).elf $(CURDIR)/SdOut
 
 #---------------------------------------------------------------------------------
-dist: all
-	@echo making dist ...
-	@rm -f $(TARGET).zip
-	@cd out; zip -r ../$(TARGET).zip ./*; cd ../
-#---------------------------------------------------------------------------------
+
 else
 .PHONY:	all
 
@@ -217,7 +212,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 all	:	 $(OUTPUT).ovl
 
-$(OUTPUT).ovl		:	$(OUTPUT).elf $(OUTPUT).nacp 
+$(OUTPUT).ovl		:	$(OUTPUT).elf $(OUTPUT).nacp
 	@elf2nro $< $@ $(NROFLAGS)
 	@echo "built ... $(notdir $(OUTPUT).ovl)"
 	@printf 'ULTR' >> $@
