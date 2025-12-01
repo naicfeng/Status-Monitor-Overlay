@@ -396,20 +396,20 @@ public:
                     } else if (key == "SOC") {                // new block
                         if (!settings.realVolts)
                             if (settings.showFanPercentage)
-                                width = renderer->getTextDimensions("88\u2103 (100%)", false, fontsize).first;
+                                width = renderer->getTextDimensions("88℃ (100%)", false, fontsize).first;
                             else
-                                width = renderer->getTextDimensions("88\u2103", false, fontsize).first;
+                                width = renderer->getTextDimensions("88℃", false, fontsize).first;
                         else
                             if (settings.showSOCVoltage) {
                                 if (settings.showFanPercentage)
-                                    width = renderer->getTextDimensions("88\u2103 100%444 mV", false, fontsize).first;
+                                    width = renderer->getTextDimensions("88℃ 100%444 mV", false, fontsize).first;
                                 else
-                                    width = renderer->getTextDimensions("88\u2103444 mV", false, fontsize).first;
+                                    width = renderer->getTextDimensions("88℃444 mV", false, fontsize).first;
                             } else {
                                 if (settings.showFanPercentage)
-                                    width = renderer->getTextDimensions("88\u2103 100%", false, fontsize).first;
+                                    width = renderer->getTextDimensions("88℃ 100%", false, fontsize).first;
                                 else
-                                    width = renderer->getTextDimensions("88\u2103", false, fontsize).first;
+                                    width = renderer->getTextDimensions("88℃", false, fontsize).first;
                             }
                     } else if (key == "TMP") {
                         //dimensions = renderer->drawString("88.8\u00B0C88.8\u00B0C88.8\u00B0C (100%)", false, 0, 0, fontsize, renderer->a(0x0000));
@@ -1114,10 +1114,10 @@ public:
             if (isActive("SOC")) {
                 if (settings.showFanPercentage) {
                     snprintf(soc_temperature_c, sizeof(soc_temperature_c),
-                             "%d\u2103 %d%%", (int)SOC_temperatureF, duty);
+                             "%d℃ %d%%", (int)SOC_temperatureF, duty);
                 } else {
                     snprintf(soc_temperature_c, sizeof(soc_temperature_c),
-                             "%d\u2103", (int)SOC_temperatureF);
+                             "%d℃", (int)SOC_temperatureF);
                 }
             }
 

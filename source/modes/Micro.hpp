@@ -930,14 +930,14 @@ public:
 
         /* Integer SoC temperature + duty */
         snprintf(soc_temperature_c, sizeof soc_temperature_c,
-                 "%d\u2103 %d%%",
+                 "%d℃ %d%%",
                  (int)SOC_temperatureF,          // SoC °C, no decimals
                  duty);                          // fan %
 
         /* Integer SOC, PCB and skin temperatures + duty                    *
          *  skin_temperaturemiliC is in milli-degrees C → divide by 1000     */
         snprintf(skin_temperature_c, sizeof skin_temperature_c,
-                 "%d\u2103 %d\u2103 %hu\u2103 %d%%",
+                 "%d℃ %d℃ %hu℃ %d%%",
                  (int)SOC_temperatureF,          // SoC
                  (int)PCB_temperatureF,          // PCB
                  (uint16_t)(skin_temperaturemiliC / 1000), // skin
