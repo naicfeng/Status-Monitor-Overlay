@@ -22,6 +22,34 @@ private:
 
     bool skipOnce = true;
     bool runOnce = true;
+
+        const char* getChargerTypeString(BatteryChargeInfoFieldsChargerType chargerType) {
+        switch(chargerType) {
+            case 0:
+                return "无";
+            case 1:
+                return "PD充电器";
+            case 2:
+                return "Type-C 1.5A";
+            case 3:
+                return "Type-C 3A";
+            case 4:
+                return "专用充电端口(DCP)";
+            case 5:
+                return "带数据传输充电端口(CDP)";
+            case 6:
+                return "标准数据端口(SDP)";
+            case 7:
+                return "Apple 0.5A";
+            case 8:
+                return "Apple 1A";
+            case 9:
+                return "Apple 2A";
+            default:
+                return "未知";
+        }
+    }
+
     bool isChargerConnected = false;
     FullSettings settings;
 public:
@@ -184,7 +212,7 @@ public:
             snprintf(vbusCurrentLimit_c, sizeof(vbusCurrentLimit_c), "%d mA", _batteryChargeInfoFields.VBUSCurrentLimit);
             snprintf(chargeVoltageLimit_c, sizeof(chargeVoltageLimit_c), "%d mV", _batteryChargeInfoFields.ChargeVoltageLimit);
             snprintf(chargeCurrentLimit_c, sizeof(chargeCurrentLimit_c), "%d mA", _batteryChargeInfoFields.ChargeCurrentLimit);
-            snprintf(chargerType_c, sizeof(chargerType_c), "%u", ChargerConnected);
+            snprintf(chargerType_c, sizeof(chargerType_c), "%u", getChargerTypeString(ChargerConnected));
             snprintf(chargerMaxVoltage_c, sizeof(chargerMaxVoltage_c), "%u mV", ChargerVoltageLimit);
             snprintf(chargerMaxCurrent_c, sizeof(chargerMaxCurrent_c), "%u mA", ChargerCurrentLimit);
         }
