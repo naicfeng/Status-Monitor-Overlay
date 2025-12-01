@@ -212,7 +212,7 @@ public:
             snprintf(vbusCurrentLimit_c, sizeof(vbusCurrentLimit_c), "%d mA", _batteryChargeInfoFields.VBUSCurrentLimit);
             snprintf(chargeVoltageLimit_c, sizeof(chargeVoltageLimit_c), "%d mV", _batteryChargeInfoFields.ChargeVoltageLimit);
             snprintf(chargeCurrentLimit_c, sizeof(chargeCurrentLimit_c), "%d mA", _batteryChargeInfoFields.ChargeCurrentLimit);
-            snprintf(chargerType_c, sizeof(chargerType_c), "%u", getChargerTypeString(ChargerConnected));
+            snprintf(chargerType_c, sizeof(chargerType_c), "%s", getChargerTypeString(ChargerConnected));
             snprintf(chargerMaxVoltage_c, sizeof(chargerMaxVoltage_c), "%u mV", ChargerVoltageLimit);
             snprintf(chargerMaxCurrent_c, sizeof(chargerMaxCurrent_c), "%u mA", ChargerCurrentLimit);
         }

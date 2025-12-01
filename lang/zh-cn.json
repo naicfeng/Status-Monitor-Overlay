@@ -52,7 +52,7 @@
     "VBUS Current Limit": "VBUS 电流限制",
     "Voltage Limit": "电压限制",
     "Current Limit": "电流限制",
-    "Type": "类型",
+    "Type": "充电器类型",
     "Max Voltage": "最大电压",
     "Max Current": "最大电流",
     "Multimedia Clock Rates": "多媒体时钟频率",
