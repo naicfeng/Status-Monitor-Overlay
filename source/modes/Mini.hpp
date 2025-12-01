@@ -678,36 +678,46 @@ public:
                 if (settings.useDynamicColors) {
                     if (labelIndex < labelLines.size() && labelLines[labelIndex] == "SOC") {
                         // SOC temperature rendering with gradient
-                        const size_t degreesPos = currentLine.find("°");
-                        if (degreesPos != std::string::npos) {
-                            // Find the 'C' after the degrees symbol
-                            const size_t cPos = currentLine.find("C", degreesPos);
-                            if (cPos != std::string::npos) {
-                                const size_t tempEnd = cPos + 1; // Include the 'C'
+                        const std::string degSymbol = "\u2103"; // U+2103
+                        size_t tempEnd = std::string::npos;
+                        bool parsed = false;
 
-                                // Extract temperature value and apply gradient
-                                const int temp = atoi(currentLine.c_str());
-                                const tsl::Color tempColor = tsl::GradientColor((float)temp);
-
-                                // Split into temperature part and remaining part
-                                const std::string tempPart = currentLine.substr(0, tempEnd);
-                                const std::string restPart = currentLine.substr(tempEnd);
-
-                                // Render temperature with gradient color
-                                int currentX = baseX;
-                                renderer->drawString(tempPart, false, currentX, baseY, fontsize, tempColor);
-
-                                // Render remaining text with normal color
-                                if (!restPart.empty()) {
-                                    currentX += renderer->getTextDimensions(tempPart, false, fontsize).first;
-                                    renderer->drawStringWithColoredSections(restPart, false, specialChars, currentX, baseY, fontsize, settings.textColor, settings.separatorColor);
+                        // Try single-character ℃ first
+                        const size_t degSymPos = currentLine.find(degSymbol);
+                        if (degSymPos != std::string::npos) {
+                            tempEnd = degSymPos + degSymbol.size();
+                            parsed = true;
+                        } else {
+                            // Fallback to legacy '°' + 'C'
+                            const size_t degreesPos = currentLine.find("°");
+                            if (degreesPos != std::string::npos) {
+                                const size_t cPos = currentLine.find("C", degreesPos);
+                                if (cPos != std::string::npos) {
+                                    tempEnd = cPos + 1; // Include the 'C'
+                                    parsed = true;
                                 }
-                            } else {
-                                // Fallback: no C found after degrees, render normally
-                                renderer->drawStringWithColoredSections(currentLine, false, specialChars, baseX, baseY, fontsize, settings.textColor, settings.separatorColor);
+                            }
+                        }
+
+                        if (parsed && tempEnd != std::string::npos) {
+                            // Extract temperature value and apply gradient
+                            const std::string tempPart = currentLine.substr(0, tempEnd);
+                            const std::string restPart = currentLine.substr(tempEnd);
+
+                            const int temp = atoi(tempPart.c_str());
+                            const tsl::Color tempColor = tsl::GradientColor((float)temp);
+
+                            // Render temperature with gradient color
+                            int currentX = baseX;
+                            renderer->drawString(tempPart, false, currentX, baseY, fontsize, tempColor);
+
+                            // Render remaining text with normal color
+                            if (!restPart.empty()) {
+                                currentX += renderer->getTextDimensions(tempPart, false, fontsize).first;
+                                renderer->drawStringWithColoredSections(restPart, false, specialChars, currentX, baseY, fontsize, settings.textColor, settings.separatorColor);
                             }
                         } else {
-                            // Fallback: no degrees symbol found, render normally
+                            // Fallback: render normally
                             renderer->drawStringWithColoredSections(currentLine, false, specialChars, baseX, baseY, fontsize, settings.textColor, settings.separatorColor);
                         }
 
@@ -717,7 +727,8 @@ public:
                         size_t pos = 0;
                         bool parseSuccess = true;
 
-                        // Parse up to 3 temperatures in the format "XX°C XX°C XX°C (XX%)"
+                        // Parse up to 3 temperatures in the format "XX°C XX°C XX°C (XX%)" or using single-character ℃
+                        const std::string degSymbol = "\u2103"; // U+2103
                         for (int tempCount = 0; tempCount < 3 && parseSuccess && pos < currentLine.length(); tempCount++) {
                             // Find start of current temperature (skip any leading spaces)
                             while (pos < currentLine.length() && currentLine[pos] == ' ') {
@@ -728,31 +739,53 @@ public:
 
                             if (pos >= currentLine.length()) break;
 
-                            // Find degrees symbol
-                            const size_t degreesPos = currentLine.find("°", pos);
+                            // Try single-character ℃ first at or after pos
+                            size_t degreesPos = currentLine.find(degSymbol, pos);
+                            bool useSingleSymbol = true;
+
+                            if (degreesPos == std::string::npos) {
+                                // Fall back to legacy '°' + 'C'
+                                degreesPos = currentLine.find("°", pos);
+                                useSingleSymbol = false;
+                            }
+
                             if (degreesPos == std::string::npos) {
                                 parseSuccess = false;
                                 break;
                             }
 
-                            // Find 'C' after degrees symbol
-                            const size_t cPos = currentLine.find("C", degreesPos);
-                            if (cPos == std::string::npos) {
-                                parseSuccess = false;
-                                break;
+                            if (useSingleSymbol) {
+                                const size_t tempEnd = degreesPos + degSymbol.size(); // include '℃'
+
+                                // Extract and render temperature with gradient
+                                const std::string tempPart = currentLine.substr(pos, tempEnd - pos);
+                                const int temp = atoi(tempPart.c_str());
+                                const tsl::Color tempColor = tsl::GradientColor((float)temp);
+
+                                renderer->drawString(tempPart, false, currentX, baseY, fontsize, tempColor);
+                                currentX += renderer->getTextDimensions(tempPart, false, fontsize).first;
+
+                                pos = tempEnd;
+                            } else {
+                                // legacy: find 'C' after degrees symbol
+                                const size_t cPos = currentLine.find("C", degreesPos);
+                                if (cPos == std::string::npos) {
+                                    parseSuccess = false;
+                                    break;
+                                }
+
+                                const size_t tempEnd = cPos + 1; // Include the 'C'
+
+                                // Extract and render temperature with gradient
+                                const std::string tempPart = currentLine.substr(pos, tempEnd - pos);
+                                const int temp = atoi(tempPart.c_str());
+                                const tsl::Color tempColor = tsl::GradientColor((float)temp);
+
+                                renderer->drawString(tempPart, false, currentX, baseY, fontsize, tempColor);
+                                currentX += renderer->getTextDimensions(tempPart, false, fontsize).first;
+
+                                pos = tempEnd;
                             }
-
-                            const size_t tempEnd = cPos + 1; // Include the 'C'
-
-                            // Extract and render temperature with gradient
-                            const std::string tempPart = currentLine.substr(pos, tempEnd - pos);
-                            const int temp = atoi(tempPart.c_str());
-                            const tsl::Color tempColor = tsl::GradientColor((float)temp);
-
-                            renderer->drawString(tempPart, false, currentX, baseY, fontsize, tempColor);
-                            currentX += renderer->getTextDimensions(tempPart, false, fontsize).first;
-
-                            pos = tempEnd;
                         }
 
                         // Render any remaining text (like " (50%)" or voltage info)
