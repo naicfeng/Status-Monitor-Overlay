@@ -192,6 +192,7 @@ $(BUILD):
 	@rm -rf $(CURDIR)/SdOut/
 	@mkdir -p $(CURDIR)/SdOut/switch/.overlays/
 	@cp -a $(CURDIR)/config $(CURDIR)/SdOut/
+	@cp -a $(CURDIR)/lang $(CURDIR)/SdOut/config/status-monitor/
 	@cp $(CURDIR)/$(TARGET).ovl $(CURDIR)/SdOut/switch/.overlays/$(TARGET).ovl
 	@cd $(CURDIR)/SdOut; zip -r -q -9 $(APP_TITLE).zip switch config; cd $(CURDIR)
 
