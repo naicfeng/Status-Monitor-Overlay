@@ -208,8 +208,8 @@ uintptr_t FPSaddress = 0;
 uintptr_t FPSavgaddress = 0;
 uint64_t PID = 0;
 uint32_t FPS = 0xFE;
-float FPSmin = 254; 
-float FPSmax = 0; 
+float FPSmin = 254;
+float FPSmax = 0;
 float FPSavg = 254;
 float FPSavg_old = 254;
 bool useOldFPSavg = false;
@@ -223,10 +223,10 @@ uint32_t realCPU_Hz = 0;
 uint32_t realGPU_Hz = 0;
 uint32_t realRAM_Hz = 0;
 uint32_t ramLoad[SysClkRamLoad_EnumMax];
-uint32_t realCPU_mV = 0; 
-uint32_t realGPU_mV = 0; 
-uint32_t realRAM_mV = 0; 
-uint32_t realSOC_mV = 0; 
+uint32_t realCPU_mV = 0;
+uint32_t realGPU_mV = 0;
+uint32_t realRAM_mV = 0;
+uint32_t realSOC_mV = 0;
 uint8_t refreshRate = 0;
 
 int compare (const void* elem1, const void* elem2) {
@@ -266,20 +266,20 @@ void searchSharedMemoryBlock(uintptr_t base) {
         NxFps = 0;
         return;
     }
-    
+
     ptrdiff_t search_offset = 0;
     const uintptr_t memory_end = base + 0x1000;
-    
+
     while (search_offset < 0x1000) {
         const uintptr_t current_addr = base + search_offset;
-        
+
         // Ensure we don't read past the end of shared memory
         if (current_addr + sizeof(NxFpsSharedBlock) > memory_end) {
             break;
         }
-        
+
         NxFps = (NxFpsSharedBlock*)current_addr;
-        
+
         // Add bounds checking and magic validation
         if (NxFps && current_addr >= base && NxFps->MAGIC == 0x465053) {
             return;
@@ -292,24 +292,24 @@ void searchSharedMemoryBlock(uintptr_t base) {
 //Check if SaltyNX is working
 bool CheckPort() {
     Handle saltysd;
-    
+
     // Try up to 67 times with exponential backoff for better responsiveness
     for (int i = 0; i < 50; i++) {
         if (R_SUCCEEDED(svcConnectToNamedPort(&saltysd, "InjectServ"))) {
             svcCloseHandle(saltysd);
             return true;
         }
-        
+
         // Progressive sleep - start fast, then slow down
         //if (i < 10) {
         //    svcSleepThread(100'000);    // 0.1ms for first 10 attempts
         //} else if (i < 30) {
-        //    svcSleepThread(500'000);    // 0.5ms for next 20 attempts  
+        //    svcSleepThread(500'000);    // 0.5ms for next 20 attempts
         //} else {
         //    svcSleepThread(1'000'000);  // 1ms for remaining attempts
         //}
     }
-    
+
     return false;
 }
 
@@ -437,7 +437,7 @@ void BatteryChecker(void*) {
 
         if (batCurrentAvg >= 0) {
             batTimeEstimate = -1;
-        } 
+        }
         else {
             static float batteryTimeEstimateInMinutes = 0;
             Max17050ReadReg(MAX17050_TTE, &data);
@@ -519,7 +519,7 @@ bool usingEOS() {
 // === ULTRA-FAST VOLTAGE READING ===
 static constexpr PowerDomainId domains[] = {
     PcvPowerDomainId_Max77621_Cpu,    // [0] CPU
-    PcvPowerDomainId_Max77621_Gpu,    // [1] GPU  
+    PcvPowerDomainId_Max77621_Gpu,    // [1] GPU
     PcvPowerDomainId_Max77812_Dram,   // [2] VDD2 (EMC/DRAM)
     PcvPowerDomainId_Max77620_Sd0,    // [3] SOC
     PcvPowerDomainId_Max77620_Sd1     // [4] VDDQ
@@ -530,7 +530,7 @@ static constexpr PowerDomainId domains[] = {
 void Misc(void*) {
     const uint64_t timeout_ns = TeslaFPS < 10 ? (1'000'000'000 / TeslaFPS) : 100'000'000;
     const bool isUsingEOS = usingEOS();
-    
+
     // Initialize voltage reading if needed
     bool canReadVoltages = false;
     if (!isUsingEOS && realVoltsPolling) {
@@ -539,10 +539,10 @@ void Misc(void*) {
             realVoltsPolling = false;
         }
     }
-    
+
     do {
         mutexLock(&mutex_Misc);
-        
+
         // CPU, GPU and RAM Frequency
         if (R_SUCCEEDED(clkrstCheck)) {
             ClkrstSession clkSession;
@@ -564,7 +564,7 @@ void Misc(void*) {
             pcvGetClockRate(PcvModule_GPU, &GPU_Hz);
             pcvGetClockRate(PcvModule_EMC, &RAM_Hz);
         }
-        
+
         // Get sys-clk data
         if (R_SUCCEEDED(sysclkCheck)) {
             SysClkContext sysclkCTX;
@@ -574,22 +574,22 @@ void Misc(void*) {
                 realRAM_Hz = sysclkCTX.realFreqs[SysClkModule_MEM];
                 ramLoad[SysClkRamLoad_All] = sysclkCTX.ramLoad[SysClkRamLoad_All];
                 ramLoad[SysClkRamLoad_Cpu] = sysclkCTX.ramLoad[SysClkRamLoad_Cpu];
-                
+
                 // If using EOS, get voltages from sys-clk
                 if (isUsingEOS && realVoltsPolling) {
-                    realCPU_mV = sysclkCTX.realVolts[0]; 
-                    realGPU_mV = sysclkCTX.realVolts[1]; 
-                    realRAM_mV = sysclkCTX.realVolts[2]; 
+                    realCPU_mV = sysclkCTX.realVolts[0];
+                    realGPU_mV = sysclkCTX.realVolts[1];
+                    realRAM_mV = sysclkCTX.realVolts[2];
                     realSOC_mV = sysclkCTX.realVolts[3];
                 }
             }
         }
-        
+
         // Read voltages directly if not using EOS
         if (canReadVoltages) {
             RgltrSession session;
             u32 vdd2_raw = 0, vddq_raw = 0;
-            
+
             // CPU voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, PcvPowerDomainId_Max77621_Cpu))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realCPU_mV))) {
@@ -597,7 +597,7 @@ void Misc(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // GPU voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, PcvPowerDomainId_Max77621_Gpu))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realGPU_mV))) {
@@ -605,7 +605,7 @@ void Misc(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // SOC voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, PcvPowerDomainId_Max77620_Sd0))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realSOC_mV))) {
@@ -613,7 +613,7 @@ void Misc(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // VDD2 (DRAM)
             if (R_SUCCEEDED(rgltrOpenSession(&session, PcvPowerDomainId_Max77812_Dram))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &vdd2_raw))) {
@@ -621,7 +621,7 @@ void Misc(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // VDDQ
             if (R_SUCCEEDED(rgltrOpenSession(&session, PcvPowerDomainId_Max77620_Sd1))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &vddq_raw))) {
@@ -629,13 +629,13 @@ void Misc(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // Pack VDD2 and VDDQ into realRAM_mV in sys-clk format
             const u32 vdd2_mV = vdd2_raw / 1000;  // µV to mV
             const u32 vddq_mV = vddq_raw / 1000;  // µV to mV
             realRAM_mV = vdd2_mV * 100000 + vddq_mV * 10;
         }
-        
+
         // Temperatures
         if (R_SUCCEEDED(i2cCheck)) {
             Tmp451GetSocTemp(&SOC_temperatureF);
@@ -644,7 +644,7 @@ void Misc(void*) {
         if (R_SUCCEEDED(tcCheck)) {
             tcGetSkinTemperatureMilliC(&skin_temperaturemiliC);
         }
-        
+
         // RAM Memory Used
         if (R_SUCCEEDED(Hinted)) {
             svcGetSystemInfo(&RAM_Total_application_u, 0, INVALID_HANDLE, 0);
@@ -656,7 +656,7 @@ void Misc(void*) {
             svcGetSystemInfo(&RAM_Used_system_u, 1, INVALID_HANDLE, 2);
             svcGetSystemInfo(&RAM_Used_systemunsafe_u, 1, INVALID_HANDLE, 3);
         }
-        
+
         // Fan
         if (R_SUCCEEDED(pwmCheck)) {
             double temp = 0;
@@ -670,29 +670,29 @@ void Misc(void*) {
                 }
             }
         }
-        
+
         // GPU Load
         if (R_SUCCEEDED(nvCheck) && GPULoadPerFrame) {
             nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &GPU_Load_u);
         }
-        
+
         // FPS - with proper null checks
         if (GameRunning) {
             if (NxFps && SharedMemoryUsed) {
                 FPS = NxFps->FPS;
                 const size_t element_count = sizeof(NxFps->FPSticks) / sizeof(NxFps->FPSticks[0]);
-                FPSavg_old = static_cast<float>(systemtickfrequency) / 
+                FPSavg_old = static_cast<float>(systemtickfrequency) /
                             (std::accumulate(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0.0f) / element_count);
-                
+
                 const float FPS_in = static_cast<float>(FPS);
                 if (FPSavg_old >= (FPS_in - 0.25f) && FPSavg_old <= (FPS_in + 0.25f)) {
                     FPSavg = FPS_in;
                 } else {
                     FPSavg = FPSavg_old;
                 }
-                
+
                 lastFrameNumber = NxFps->frameNumber;
-                
+
                 if (FPSavg > FPSmax) FPSmax = FPSavg;
                 if (FPSavg < FPSmin) FPSmin = FPSavg;
             }
@@ -701,11 +701,11 @@ void Misc(void*) {
             FPSmin = 254;
             FPSmax = 0;
         }
-        
+
         mutexUnlock(&mutex_Misc);
-        
+
     } while (!leventWait(&threadexit, timeout_ns));
-    
+
     // Cleanup voltage reading if initialized
     if (canReadVoltages) {
         rgltrExit();
@@ -734,7 +734,7 @@ void Misc2(void*) {
 
 void Misc3(void*) {
     const bool isUsingEOS = usingEOS();
-    
+
     // Initialize voltage reading if needed
     bool canReadVoltages = false;
     if (!isUsingEOS && realVoltsPolling) {
@@ -743,32 +743,32 @@ void Misc3(void*) {
             realVoltsPolling = false;
         }
     }
-    
+
     do {
         mutexLock(&mutex_Misc);
-        
+
         // Get sys-clk data
         if (R_SUCCEEDED(sysclkCheck)) {
             SysClkContext sysclkCTX;
             if (R_SUCCEEDED(sysclkIpcGetCurrentContext(&sysclkCTX))) {
                 ramLoad[SysClkRamLoad_All] = sysclkCTX.ramLoad[SysClkRamLoad_All];
                 ramLoad[SysClkRamLoad_Cpu] = sysclkCTX.ramLoad[SysClkRamLoad_Cpu];
-                
+
                 // Get voltages from sys-clk if using EOS
                 if (isUsingEOS && realVoltsPolling) {
-                    realCPU_mV = sysclkCTX.realVolts[0]; 
-                    realGPU_mV = sysclkCTX.realVolts[1]; 
-                    realRAM_mV = sysclkCTX.realVolts[2]; 
+                    realCPU_mV = sysclkCTX.realVolts[0];
+                    realGPU_mV = sysclkCTX.realVolts[1];
+                    realRAM_mV = sysclkCTX.realVolts[2];
                     realSOC_mV = sysclkCTX.realVolts[3];
                 }
             }
         }
-        
+
         // Read voltages directly if not using EOS
         if (canReadVoltages) {
             RgltrSession session;
             u32 vdd2_raw = 0, vddq_raw = 0;
-            
+
             // CPU voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, domains[0]))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realCPU_mV))) {
@@ -776,7 +776,7 @@ void Misc3(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // GPU voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, domains[1]))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realGPU_mV))) {
@@ -784,7 +784,7 @@ void Misc3(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // VDD2 (DRAM)
             if (R_SUCCEEDED(rgltrOpenSession(&session, domains[2]))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &vdd2_raw))) {
@@ -792,7 +792,7 @@ void Misc3(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // SOC voltage
             if (R_SUCCEEDED(rgltrOpenSession(&session, domains[3]))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &realSOC_mV))) {
@@ -800,7 +800,7 @@ void Misc3(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // VDDQ
             if (R_SUCCEEDED(rgltrOpenSession(&session, domains[4]))) {
                 if (R_FAILED(rgltrGetVoltage(&session, &vddq_raw))) {
@@ -808,13 +808,13 @@ void Misc3(void*) {
                 }
                 rgltrCloseSession(&session);
             }
-            
+
             // Pack VDD2 and VDDQ into realRAM_mV in sys-clk format
             const u32 vdd2_mV = vdd2_raw / 1000;  // µV to mV
             const u32 vddq_mV = vddq_raw / 1000;  // µV to mV
             realRAM_mV = vdd2_mV * 100000 + vddq_mV * 10;
         }
-        
+
         // Temperatures
         if (R_SUCCEEDED(i2cCheck)) {
             Tmp451GetSocTemp(&SOC_temperatureF);
@@ -823,7 +823,7 @@ void Misc3(void*) {
         if (R_SUCCEEDED(tcCheck)) {
             tcGetSkinTemperatureMilliC(&skin_temperaturemiliC);
         }
-        
+
         // Fan
         if (R_SUCCEEDED(pwmCheck)) {
             double temp = 0;
@@ -837,16 +837,16 @@ void Misc3(void*) {
                 }
             }
         }
-        
+
         // GPU Load
         if (R_SUCCEEDED(nvCheck)) {
             nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &GPU_Load_u);
         }
-        
+
         mutexUnlock(&mutex_Misc);
-        
+
     } while (!leventWait(&threadexit, 1'000'000'000)); // 1 second timeout
-    
+
     // Cleanup voltage reading if initialized
     if (canReadVoltages) {
         rgltrExit();
@@ -991,7 +991,7 @@ void FPSCounter(void*) {
                 const size_t element_count = sizeof(NxFps -> FPSticks) / sizeof(NxFps -> FPSticks[0]);
                 FPSavg_old = (float)systemtickfrequency / (std::accumulate<uint32_t*, float>(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0) / element_count);
                 const float FPS_in = (float)FPS;
-                if (FPSavg_old >= (FPS_in-0.25) && FPSavg_old <= (FPS_in+0.25)) 
+                if (FPSavg_old >= (FPS_in-0.25) && FPSavg_old <= (FPS_in+0.25))
                     FPSavg = FPS_in;
                 else FPSavg = FPSavg_old;
                 lastFrameNumber = NxFps -> frameNumber;
@@ -1019,10 +1019,10 @@ void EndFPSCounterThread() {
     threadClose(&t4);
 }
 
-void StartInfoThread() {    
+void StartInfoThread() {
     // Clear the thread exit event for new threads
     leventClear(&threadexit);
-    
+
     threadCreate(&t0, CheckCore, &idletick0, NULL, 0x1000, 0x10, 0);
     threadCreate(&t1, CheckCore, &idletick1, NULL, 0x1000, 0x10, 1);
     threadCreate(&t2, CheckCore, &idletick2, NULL, 0x1000, 0x10, 2);
@@ -1044,14 +1044,14 @@ void StartInfoThread() {
 void EndInfoThread() {
     // Signal the thread exit event
     leventSignal(&threadexit);
-    
+
     // Wait for all threads to exit
     threadWaitForExit(&t0);
     threadWaitForExit(&t1);
     threadWaitForExit(&t2);
     threadWaitForExit(&t3);
     threadWaitForExit(&t7);
-    
+
     // Close thread handles
     threadClose(&t0);
     threadClose(&t1);
@@ -1135,7 +1135,7 @@ void formatButtonCombination(std::string& line) {
     button = line.substr(old_pos);
     if (replaces.find(button) != replaces.end()) {
         line.replace(old_pos, button.length(), replaces[button]);
-    }    
+    }
 }
 
 //uint64_t comboBitmask = 0;
@@ -1168,7 +1168,7 @@ void formatButtonCombination(std::string& line) {
 //        {"RIGHT", HidNpadButton_AnyRight}
 //    };
 //
-//    
+//
 //    std::string comboCopy = buttonCombo;  // Make a copy of buttonCombo
 //
 //    static const std::string delimiter = "+";
@@ -1194,16 +1194,16 @@ void formatButtonCombination(std::string& line) {
 ALWAYS_INLINE bool isKeyComboPressed(uint64_t keysHeld, uint64_t keysDown) {
     // Check if any of the combo buttons are pressed down this frame
     // while the rest of the combo buttons are being held
-    
+
     const uint64_t comboButtonsDown = keysDown & tsl::cfg::launchCombo;
     const uint64_t comboButtonsHeld = keysHeld & tsl::cfg::launchCombo;
-    
+
     // If any combo buttons are pressed down this frame
     if (comboButtonsDown != 0) {
         // Check if the remaining combo buttons are being held
         // (the full combo should be active when combining held + down)
         const uint64_t totalComboActive = comboButtonsHeld | comboButtonsDown;
-        
+
         if (totalComboActive == tsl::cfg::launchCombo) {
             fixHiding = true; // for fixing hiding when returning
             //triggerRumbleDoubleClick.store(true, std::memory_order_release);
@@ -1211,7 +1211,7 @@ ALWAYS_INLINE bool isKeyComboPressed(uint64_t keysHeld, uint64_t keysDown) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -1259,7 +1259,7 @@ void ParseIniFile() {
     // Load main config INI once
     auto configData = ult::getParsedDataFromIniFile(configIniPath);
     auto statusIt = configData.find("status-monitor");
-    
+
     if (statusIt != configData.end()) {
         const auto& statusSection = statusIt->second;
         std::string key;
@@ -1271,12 +1271,12 @@ void ParseIniFile() {
             convertToUpper(key);
             batteryFiltered = (key == "TRUE");
         }
-        
+
         auto refreshRateIt = statusSection.find("battery_time_left_refreshrate");
         if (refreshRateIt != statusSection.end()) {
             batteryTimeLeftRefreshRate = std::clamp(atol(refreshRateIt->second.c_str()), 1L, 60L);
         }
-        
+
         auto gpuLoadIt = statusSection.find("average_gpu_load");
         if (gpuLoadIt != statusSection.end()) {
             key = gpuLoadIt->second;
@@ -1297,11 +1297,11 @@ void ParseIniFile() {
         {ultrahandConfigIniPath, "ultrahand"},
         {teslaConfigIniPath, "tesla"}
     };
-    
+
     for (const auto& config : externalConfigs) {
         auto extConfigData = ult::getParsedDataFromIniFile(config.path);
         auto sectionIt = extConfigData.find(config.section);
-        
+
         if (sectionIt != extConfigData.end()) {
             auto keyComboIt = sectionIt->second.find("key_combo");
             if (keyComboIt != sectionIt->second.end() && !keyComboIt->second.empty()) {
@@ -1312,14 +1312,14 @@ void ParseIniFile() {
             }
         }
     }
-    
+
     //comboBitmask = MapButtons(keyCombo);
 }
 
 ALWAYS_INLINE bool isValidRGBA4Color(const std::string& hexColor) {
     const char* data = hexColor.data();
     const size_t size = hexColor.size();
-    
+
     static unsigned char c;
     for (size_t i = 0; i < size; ++i) {
         c = data[i];
@@ -1328,7 +1328,7 @@ ALWAYS_INLINE bool isValidRGBA4Color(const std::string& hexColor) {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -1336,7 +1336,7 @@ bool convertStrToRGBA4444(std::string hexColor, uint16_t* returnValue) {
     // Check if # is present
     if (hexColor.size() != 5 || hexColor[0] != '#')
         return false;
-    
+
     hexColor = hexColor.substr(1);
 
     if (isValidRGBA4Color(hexColor)) {
@@ -1350,7 +1350,7 @@ struct FullSettings {
     uint8_t refreshRate;
     bool setPosRight;
     bool showRealFreqs;
-    bool realVolts; 
+    bool realVolts;
     bool showDeltas;
     bool showTargetFreqs;
     bool showFPS;
@@ -1402,7 +1402,7 @@ struct MiniSettings {
 struct MicroSettings {
     uint8_t refreshRate;
     bool realFrequencies;
-    bool realVolts; 
+    bool realVolts;
     bool showFullCPU;
     bool showFullResolution;
     bool showSOCVoltage;
@@ -1414,6 +1414,7 @@ struct MicroSettings {
     bool useDTCSymbol;
     std::string dtcFormat;
     bool invertBatteryDisplay;
+    bool batteryOnlyDisplayPercentage;
     size_t handheldFontSize;
     size_t dockedFontSize;
     uint8_t alignTo;
@@ -1509,6 +1510,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
     settings->showRAMLoad = true;
     settings->showRAMLoadCPUGPU = false;
     settings->invertBatteryDisplay = true;
+
     settings->refreshRate = 1;
     settings->disableScreenshots = false;
     settings->sleepExit = false;
@@ -1520,7 +1522,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -1529,13 +1531,13 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("mini");
     if (sectionIt == parsedData.end()) return;
-    
+
     std::string key;
     uint16_t temp;
 
@@ -1546,7 +1548,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
     if (it != section.end()) {
         settings->refreshRate = std::clamp(atol(it->second.c_str()), 1L, 60L);
     }
-    
+
     // Process boolean flags
     it = section.find("real_freqs");
     if (it != section.end()) {
@@ -1554,23 +1556,23 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
         convertToUpper(key);
         settings->realFrequencies = (key == "TRUE");
     }
-    
+
     it = section.find("real_volts");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->realVolts = (key == "TRUE");
     }
-    
+
     // Process font sizes with shared bounds
     static constexpr long minFontSize = 8;
     static constexpr long maxFontSize = 22;
-    
+
     it = section.find("handheld_font_size");
     if (it != section.end()) {
         settings->handheldFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
     }
-    
+
     it = section.find("docked_font_size");
     if (it != section.end()) {
         settings->dockedFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
@@ -1580,7 +1582,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
     if (it != section.end()) {
         settings->spacing = atol(it->second.c_str());
     }
-    
+
     // Process colors
     it = section.find("background_color");
     if (it != section.end()) {
@@ -1594,7 +1596,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
         if (convertStrToRGBA4444(it->second, &temp))
             settings->focusBackgroundColor = temp;
     }
-    
+
     it = section.find("separator_color");
     if (it != section.end()) {
         temp = 0;
@@ -1608,14 +1610,14 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
         if (convertStrToRGBA4444(it->second, &temp))
             settings->catColor = temp;
     }
-    
+
     it = section.find("text_color");
     if (it != section.end()) {
         temp = 0;
         if (convertStrToRGBA4444(it->second, &temp))
             settings->textColor = temp;
     }
-    
+
     // Process RAM load flag
     it = section.find("show_full_cpu");
     if (it != section.end()) {
@@ -1693,7 +1695,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
         convertToUpper(key);
         settings->show = std::move(key);
     }
-    
+
     // Process RAM load flag
     it = section.find("replace_MB_with_RAM_load");
     if (it != section.end()) {
@@ -1733,7 +1735,7 @@ ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
         convertToUpper(key);
         settings->sleepExit = (key != "FALSE");
     }
-    
+
     // Process alignment settings
     //it = section.find("layer_width_align");
     //if (it != section.end()) {
@@ -1788,6 +1790,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     settings->useDTCSymbol = true;
     settings->dtcFormat = "%H:%M:%S";//"%Y-%m-%d %I:%M:%S %p";
     settings->invertBatteryDisplay = false;
+    settings->batteryOnlyDisplayPercentage = false;
     settings->handheldFontSize = 15;
     settings->dockedFontSize = 15;
     settings->alignTo = 1; // CENTER
@@ -1805,7 +1808,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -1814,13 +1817,13 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("micro");
     if (sectionIt == parsedData.end()) return;
-    
+
     std::string key;
     uint16_t temp;
 
@@ -1831,7 +1834,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     if (it != section.end()) {
         settings->refreshRate = std::clamp(atol(it->second.c_str()), 1L, 60L);
     }
-    
+
     // Process boolean flags
     it = section.find("real_freqs");
     if (it != section.end()) {
@@ -1839,21 +1842,21 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         convertToUpper(key);
         settings->realFrequencies = (key == "TRUE");
     }
-    
+
     it = section.find("real_volts");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->realVolts = (key == "TRUE");
     }
-    
+
     it = section.find("show_full_cpu");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showFullCPU = (key == "TRUE");
     }
-    
+
     it = section.find("show_full_res");
     if (it != section.end()) {
         key = it->second;
@@ -1923,21 +1926,28 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         convertToUpper(key);
         settings->invertBatteryDisplay = (key != "FALSE");
     }
-    
+
+    it = section.find("battery_only_display_percentage");;
+    if (it != section.end()) {
+        key = it->second;
+        convertToUpper(key);
+        settings->batteryOnlyDisplayPercentage = (key != "FALSE");
+    }
+
     // Process font sizes with shared bounds
     static constexpr long minFontSize = 8;
     static constexpr long maxFontSize = 18;
-    
+
     it = section.find("handheld_font_size");
     if (it != section.end()) {
         settings->handheldFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
     }
-    
+
     it = section.find("docked_font_size");
     if (it != section.end()) {
         settings->dockedFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
     }
-    
+
     // Process colors
     it = section.find("background_color");
     if (it != section.end()) {
@@ -1945,28 +1955,28 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         if (convertStrToRGBA4444(it->second, &temp))
             settings->backgroundColor = temp;
     }
-    
+
     it = section.find("separator_color");
     if (it != section.end()) {
         temp = 0;
         if (convertStrToRGBA4444(it->second, &temp))
             settings->separatorColor = temp;
     }
-    
+
     it = section.find("cat_color");
     if (it != section.end()) {
         temp = 0;
         if (convertStrToRGBA4444(it->second, &temp))
             settings->catColor = temp;
     }
-    
+
     it = section.find("text_color");
     if (it != section.end()) {
         temp = 0;
         if (convertStrToRGBA4444(it->second, &temp))
             settings->textColor = temp;
     }
-    
+
     // Process text alignment
     it = section.find("text_align");
     if (it != section.end()) {
@@ -1980,7 +1990,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
             settings->alignTo = 2;
         }
     }
-    
+
     // Process RAM load flag
     it = section.find("replace_GB_with_RAM_load");
     if (it != section.end()) {
@@ -1988,7 +1998,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         convertToUpper(key);
         settings->showRAMLoad = (key != "FALSE");
     }
-    
+
     // Process show string
     it = section.find("show");
     if (it != section.end()) {
@@ -1996,7 +2006,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         convertToUpper(key);
         settings->show = std::move(key);
     }
-    
+
     // Process layer height alignment
     it = section.find("layer_height_align");
     if (it != section.end()) {
@@ -2042,7 +2052,7 @@ ALWAYS_INLINE void GetConfigSettings(FpsCounterSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -2051,33 +2061,33 @@ ALWAYS_INLINE void GetConfigSettings(FpsCounterSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("fps-counter");
     if (sectionIt == parsedData.end()) return;
-    
+
 
     std::string key;
     uint16_t temp;
 
     const auto& section = sectionIt->second;
-    
+
     // Process font sizes with shared bounds
     static constexpr long minFontSize = 8;
     static constexpr long maxFontSize = 150;
-    
+
     auto it = section.find("handheld_font_size");
     if (it != section.end()) {
         settings->handheldFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
     }
-    
+
     it = section.find("docked_font_size");
     if (it != section.end()) {
         settings->dockedFontSize = std::clamp(atol(it->second.c_str()), minFontSize, maxFontSize);
     }
-    
+
     // Process colors
     it = section.find("background_color");
     if (it != section.end()) {
@@ -2093,14 +2103,14 @@ ALWAYS_INLINE void GetConfigSettings(FpsCounterSettings* settings) {
             settings->focusBackgroundColor = temp;
     }
 
-    
+
     it = section.find("text_color");
     if (it != section.end()) {
         temp = 0;
         if (convertStrToRGBA4444(it->second, &temp))
             settings->textColor = temp;
     }
-    
+
     // Process alignment settings
     //it = section.find("layer_width_align");
     //if (it != section.end()) {
@@ -2112,7 +2122,7 @@ ALWAYS_INLINE void GetConfigSettings(FpsCounterSettings* settings) {
     //        settings->setPos = 2;
     //    }
     //}
-    
+
     //it = section.find("layer_height_align");
     //if (it != section.end()) {
     //    key = it->second;
@@ -2185,7 +2195,7 @@ ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -2194,18 +2204,18 @@ ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("fps-graph");
     if (sectionIt == parsedData.end()) return;
-    
+
     std::string key;
     uint16_t temp;
 
     const auto& section = sectionIt->second;
-    
+
     // Process alignment settings
     //auto it = section.find("layer_width_align");
     //if (it != section.end()) {
@@ -2228,7 +2238,7 @@ ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
     //        settings->setPos += 6;
     //    }
     //}
-    
+
     // Process show_info boolean
     auto it = section.find("show_info");
     if (it != section.end()) {
@@ -2267,13 +2277,13 @@ ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
         settings->framePadding = atol(it->second.c_str());
     }
 
-    
+
     // Process colors - using a struct for cleaner code
     struct ColorMapping {
         const char* key;
         uint16_t* target;
     };
-    
+
     const ColorMapping colorMappings[] = {
         {"min_fps_text_color", &settings->minFPSTextColor},
         {"max_fps_text_color", &settings->maxFPSTextColor},
@@ -2288,7 +2298,7 @@ ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
         {"text_color", &settings->textColor},
         {"cat_color", &settings->catColor}
     };
-    
+
     for (const auto& mapping : colorMappings) {
         it = section.find(mapping.key);
         if (it != section.end()) {
@@ -2319,7 +2329,7 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -2328,16 +2338,16 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("full");
     if (sectionIt == parsedData.end()) return;
-    
+
     std::string key;
     uint16_t temp;
-    
+
     const auto& section = sectionIt->second;
 
     // Process refresh_rate
@@ -2345,7 +2355,7 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
     if (it != section.end()) {
         settings->refreshRate = std::clamp(atol(it->second.c_str()), 1L, 60L);
     }
-    
+
     // Process layer position
     it = section.find("layer_width_align");
     if (it != section.end()) {
@@ -2353,7 +2363,7 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
         convertToUpper(key);
         settings->setPosRight = (key == "RIGHT");
     }
-    
+
     // Process boolean flags
     it = section.find("show_real_freqs");
     if (it != section.end()) {
@@ -2361,42 +2371,42 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
         convertToUpper(key);
         settings->showRealFreqs = !(key == "FALSE");
     }
-    
+
     it = section.find("show_deltas");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showDeltas = !(key == "FALSE");
     }
-    
+
     it = section.find("show_target_freqs");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showTargetFreqs = !(key == "FALSE");
     }
-    
+
     it = section.find("show_fps");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showFPS = !(key == "FALSE");
     }
-    
+
     it = section.find("show_res");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showRES = !(key == "FALSE");
     }
-    
+
     it = section.find("show_read_speed");
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
         settings->showRDSD = !(key == "FALSE");
     }
-    
+
     it = section.find("use_dynamic_colors");
     if (it != section.end()) {
         key = it->second;
@@ -2425,7 +2435,7 @@ ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
         if (convertStrToRGBA4444(it->second, &temp))
             settings->catColor1 = temp;
     }
-    
+
     it = section.find("cat_color_2");
     if (it != section.end()) {
         temp = 0;
@@ -2460,7 +2470,7 @@ ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
     // Open and read file efficiently
     FILE* configFile = fopen(configIniPath, "r");
     if (!configFile) return;
-    
+
     fseek(configFile, 0, SEEK_END);
     const long fileSize = ftell(configFile);
     fseek(configFile, 0, SEEK_SET);
@@ -2469,15 +2479,15 @@ ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
     fileData.resize(fileSize);
     fread(fileData.data(), 1, fileSize, configFile);
     fclose(configFile);
-    
+
     auto parsedData = ult::parseIni(fileData);
 
     // Cache section lookup
     auto sectionIt = parsedData.find("game_resolutions");
     if (sectionIt == parsedData.end()) return;
-    
+
     std::string key;
-    
+
     const auto& section = sectionIt->second;
 
     // Process refresh_rate
@@ -2502,7 +2512,7 @@ ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
         if (convertStrToRGBA4444(it->second, &temp))
             settings->focusBackgroundColor = temp;
     }
-    
+
     it = section.find("cat_color");
     if (it != section.end()) {
         temp = 0;
@@ -2517,7 +2527,7 @@ ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
     //        settings->catColor2 = temp;
     //}
 
-    
+
     it = section.find("text_color");
     if (it != section.end()) {
         temp = 0;
@@ -2539,7 +2549,7 @@ ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
     if (it != section.end()) {
         settings->framePadding = atol(it->second.c_str());
     }
-    
+
     // Process alignment settings
    //it = section.find("layer_width_align");
    //if (it != section.end()) {
