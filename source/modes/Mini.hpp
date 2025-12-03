@@ -503,8 +503,13 @@ public:
                 // Build label lines array for individual centering
                 labelLines.clear();
                 entryCount = 0;
+<<<<<<< HEAD
                 uint8_t flags = 0;
 
+=======
+                uint16_t flags = 0;
+                
+>>>>>>> bc200cfbae7c6596a4e2ff0c5db487f8c8099588
                 bool shouldAdd;
                 std::string labelText;
                 for (const auto& key : showKeys) {
@@ -1268,9 +1273,15 @@ public:
         }
 
         // Build Variables string
+<<<<<<< HEAD
         char Temp[256] = "";
         uint8_t flags = 0;
 
+=======
+        char Temp[512] = "";
+        uint16_t flags = 0;
+        
+>>>>>>> bc200cfbae7c6596a4e2ff0c5db487f8c8099588
         for (const auto& key : showKeys) {
             if (key == "CPU" && !(flags & 1)) {
                 if (Temp[0]) strcat(Temp, "\n");

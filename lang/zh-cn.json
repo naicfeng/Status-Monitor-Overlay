@@ -195,5 +195,13 @@
     "FAN": "风扇",
     "TMP": "温度",
     "BRD": "主板",
-    "Invert Battery Display": "反转电量显示"
+    "Invert Battery Display": "电量显示在功耗前",
+    "None": "无",
+    "USB-PD": "PD快充模式",
+    "Type-C 1.5A": "Type-C 1.5A",
+    "Type-C 3A": "Type-C 3A",
+    "USB-DCP": "仅充电模式(DCP) 1.5A+",
+    "USB-CDP 1.5A": "快充USB模式(CDP) 1.5A",
+    "USB-SDP 0.5A": "普通USB模式(SDP) 0.5A",
+    "Unknown": "未知"
 }

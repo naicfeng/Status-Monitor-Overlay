@@ -26,19 +26,19 @@ private:
         const char* getChargerTypeString(BatteryChargeInfoFieldsChargerType chargerType) {
         switch(chargerType) {
             case 0:
-                return "无";
+                return "None";
             case 1:
-                return "PD充电器";
+                return "USB-PD";
             case 2:
                 return "Type-C 1.5A";
             case 3:
                 return "Type-C 3A";
             case 4:
-                return "专用充电端口(DCP)";
+                return "USB-DCP";
             case 5:
-                return "带数据传输充电端口(CDP)";
+                return "USB-CDP 1.5A";
             case 6:
-                return "标准数据端口(SDP)";
+                return "USB-SDP 0.5A";
             case 7:
                 return "Apple 0.5A";
             case 8:
@@ -46,7 +46,7 @@ private:
             case 9:
                 return "Apple 2A";
             default:
-                return "未知";
+                return "Unknown";
         }
     }
 
