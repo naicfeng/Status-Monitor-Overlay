@@ -1098,7 +1098,7 @@ public:
         {
 
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.1f%%",
+                     "%.0f%%",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
         }
 
