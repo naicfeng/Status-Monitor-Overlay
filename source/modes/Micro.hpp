@@ -200,7 +200,7 @@ public:
         // Now format the initial Battery_c string
         char remainingBatteryLife[8];
         const float drawW = (fabsf(PowerConsumption) < 0.01f) ? 0.0f : PowerConsumption;
-        char tempPowerConsumption[8];
+        char tempPowerConsumption[16];
 
         if (drawW == 0.0f)
         {
@@ -1041,7 +1041,7 @@ public:
         const float drawW = (fabsf(PowerConsumption) < 0.01f) ? 0.0f
                                                               : PowerConsumption;
 
-        char tempPowerConsumption[8];
+        char tempPowerConsumption[16];
 
         if (drawW == 0.0f)
         {
