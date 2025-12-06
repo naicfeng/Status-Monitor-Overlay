@@ -205,6 +205,7 @@
     "BRD": "主板",
     "Invert Battery Display": "电量显示在功耗前",
     "Battery Only Display Percentage": "电量仅显示百分比",
+    "Show Power When Percentage Only": "电量仅显示百分比时显示功率",
     "None": "无",
     "USB-PD": "PD快充模式",
     "Type-C 1.5A": "Type-C 1.5A",
