@@ -204,17 +204,22 @@ public:
         if (batTimeEstimate >= 0 && !(drawW <= 0.01f && drawW >= -0.01f))
         {
             snprintf(remainingBatteryLife, sizeof(remainingBatteryLife),
-                     "%d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
+                     " %d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
         }
         else
         {
-            strcpy(remainingBatteryLife, "--:--");
+            strcpy(remainingBatteryLife, " [--:--]");
+        }
+
+        if (settings.dontShowRemainingTime)
+        {
+            remainingBatteryLife[0] = '\0';
         }
 
         if (!settings.invertBatteryDisplay)
         {
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.2f W%.1f%% [%s]",
+                     "%.2f W%.1f%%%s",
                      drawW,
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife);
@@ -222,7 +227,7 @@ public:
         else
         {
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.1f%% [%s]%.2f W",
+                     "%.1f%%%s%.2f W",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife,
                      drawW);
@@ -230,19 +235,10 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            if (settings.batteryOnlyDisplayPercentageShowPower)
-            {
-                snprintf(Battery_c, sizeof(Battery_c),
-                         "%.1f%%%.2f W",
-                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
-                         drawW);
-            }
-            else
-            {
-                snprintf(Battery_c, sizeof(Battery_c),
-                         "%.1f%%",
-                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
-            }
+
+            snprintf(Battery_c, sizeof(Battery_c),
+                     "%.1f%%",
+                     (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
         }
     }
 
@@ -1034,17 +1030,22 @@ public:
         if (batTimeEstimate >= 0 && !(drawW <= 0.01f && drawW >= -0.01f))
         {
             snprintf(remainingBatteryLife, sizeof remainingBatteryLife,
-                     "%d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
+                     " [%d:%02d]", batTimeEstimate / 60, batTimeEstimate % 60);
         }
         else
         {
-            strcpy(remainingBatteryLife, "--:--");
+            strcpy(remainingBatteryLife, " [--:--]");
+        }
+
+        if (settings.dontShowRemainingTime)
+        {
+            remainingBatteryLife[0] = '\0';
         }
 
         if (!settings.invertBatteryDisplay)
         {
             snprintf(Battery_c, sizeof Battery_c,
-                     "%.2f W%.1f%% [%s]",
+                     "%.2f W%.1f%%%s",
                      drawW,
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife);
@@ -1052,7 +1053,7 @@ public:
         else
         {
             snprintf(Battery_c, sizeof Battery_c,
-                     "%.1f%% [%s]%.2f W",
+                     "%.1f%%%s%.2f W",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife,
                      drawW);
@@ -1060,19 +1061,10 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            if (settings.batteryOnlyDisplayPercentageShowPower)
-            {
-                snprintf(Battery_c, sizeof(Battery_c),
-                         "%.1f%%%.2f W",
-                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
-                         drawW);
-            }
-            else
-            {
-                snprintf(Battery_c, sizeof(Battery_c),
-                         "%.1f%%",
-                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
-            }
+
+            snprintf(Battery_c, sizeof(Battery_c),
+                     "%.1f%%",
+                     (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
         }
 
         mutexUnlock(&mutex_BatteryChecker);

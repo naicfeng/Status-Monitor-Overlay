@@ -446,11 +446,11 @@ public:
                 });
                 list->addItem(batteryOnlyDisplayPercentage);
 
-                auto* batteryOnlyDisplayPercentageShowPower = new tsl::elm::ToggleListItem("Show Power When Percentage Only", getCurrentBatteryOnlyDisplayPercentageShowPower());
-                batteryOnlyDisplayPercentageShowPower->setStateChangedListener([this, section](bool state) {
-                    ult::setIniFileValue(configIniPath, section, "battery_only_display_percentage_show_power", state ? "true" : "false");
+                auto* dontShowRemainingTime = new tsl::elm::ToggleListItem("Don't Show Remaining Time", getCurrentDontShowRemainingTime());
+                dontShowRemainingTime->setStateChangedListener([this, section](bool state) {
+                    ult::setIniFileValue(configIniPath, section, "dont_show_remaining_time", state ? "true" : "false");
                 });
-                list->addItem(batteryOnlyDisplayPercentageShowPower);
+                list->addItem(dontShowRemainingTime);
             }
 
 
@@ -613,8 +613,8 @@ private:
         return value != "FALSE";
     }
 
-    bool getCurrentBatteryOnlyDisplayPercentageShowPower() {
-        std::string value = ult::parseValueFromIniSection(configIniPath, "micro", "battery_only_display_percentage_show_power");
+    bool getCurrentDontShowRemainingTime() {
+        std::string value = ult::parseValueFromIniSection(configIniPath, "micro", "dont_show_remaining_time");
         if (value.empty()) return true; // Default: true
         convertToUpper(value);
         return value != "FALSE";

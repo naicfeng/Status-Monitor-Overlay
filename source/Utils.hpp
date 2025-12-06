@@ -1419,7 +1419,7 @@ struct MicroSettings {
     std::string dtcFormat;
     bool invertBatteryDisplay;
     bool batteryOnlyDisplayPercentage;
-    bool batteryOnlyDisplayPercentageShowPower;
+    bool dontShowRemainingTime;
     size_t handheldFontSize;
     size_t dockedFontSize;
     uint8_t alignTo;
@@ -1796,7 +1796,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     settings->dtcFormat = "%H:%M:%S";//"%Y-%m-%d %I:%M:%S %p";
     settings->invertBatteryDisplay = false;
     settings->batteryOnlyDisplayPercentage = false;
-    settings->batteryOnlyDisplayPercentageShowPower = false;
+    settings->dontShowRemainingTime = false;
     settings->handheldFontSize = 15;
     settings->dockedFontSize = 15;
     settings->alignTo = 1; // CENTER
@@ -1940,11 +1940,11 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         settings->batteryOnlyDisplayPercentage = (key != "FALSE");
     }
 
-    it = section.find("battery_only_display_percentage_show_power");;
+    it = section.find("dont_show_remaining_time");;
     if (it != section.end()) {
         key = it->second;
         convertToUpper(key);
-        settings->batteryOnlyDisplayPercentageShowPower = (key != "FALSE");
+        settings->dontShowRemainingTime = (key != "FALSE");
     }
 
     // Process font sizes with shared bounds
