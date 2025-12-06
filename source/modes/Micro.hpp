@@ -200,6 +200,23 @@ public:
         // Now format the initial Battery_c string
         char remainingBatteryLife[8];
         const float drawW = (fabsf(PowerConsumption) < 0.01f) ? 0.0f : PowerConsumption;
+        char tempPowerConsumption[8];
+
+        if (drawW == 0.0f)
+        {
+            tempPowerConsumption[0] = '\0';
+        }
+        else
+        {
+            if (!settings.invertBatteryDisplay)
+            {
+                snprintf(tempPowerConsumption, sizeof(tempPowerConsumption), "%.2f W", drawW);
+            }
+            else
+            {
+                snprintf(tempPowerConsumption, sizeof(tempPowerConsumption), "%.2f W", drawW);
+            }
+        }
 
         if (batTimeEstimate >= 0 && !(drawW <= 0.01f && drawW >= -0.01f))
         {
@@ -219,25 +236,25 @@ public:
         if (!settings.invertBatteryDisplay)
         {
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.2f W%.1f%%%s",
-                     drawW,
+                     "%s%.0f%%%s",
+                     tempPowerConsumption,
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife);
         }
         else
         {
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.1f%%%s%.2f W",
+                     "%.0f%%%s%s",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife,
-                     drawW);
+                     tempPowerConsumption);
         }
 
         if (settings.batteryOnlyDisplayPercentage)
         {
 
             snprintf(Battery_c, sizeof(Battery_c),
-                     "%.1f%%",
+                     "%.0f%%",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
         }
     }
@@ -1024,6 +1041,24 @@ public:
         const float drawW = (fabsf(PowerConsumption) < 0.01f) ? 0.0f
                                                               : PowerConsumption;
 
+        char tempPowerConsumption[8];
+
+        if (drawW == 0.0f)
+        {
+            tempPowerConsumption[0] = '\0';
+        }
+        else
+        {
+            if (!settings.invertBatteryDisplay)
+            {
+                snprintf(tempPowerConsumption, sizeof(tempPowerConsumption), "%.2f W", drawW);
+            }
+            else
+            {
+                snprintf(tempPowerConsumption, sizeof(tempPowerConsumption), "%.2f W", drawW);
+            }
+        }
+
         mutexLock(&mutex_BatteryChecker);
 
         /* show a time only when the estimate is valid **and** draw ≥ 0.01 W */
@@ -1045,18 +1080,18 @@ public:
         if (!settings.invertBatteryDisplay)
         {
             snprintf(Battery_c, sizeof Battery_c,
-                     "%.2f W%.1f%%%s",
-                     drawW,
+                     "%s%.0f%%%s",
+                     tempPowerConsumption,
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife);
         }
         else
         {
             snprintf(Battery_c, sizeof Battery_c,
-                     "%.1f%%%s%.2f W",
+                     "%.0f%%%s%s",
                      (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                      remainingBatteryLife,
-                     drawW);
+                     tempPowerConsumption);
         }
 
         if (settings.batteryOnlyDisplayPercentage)
