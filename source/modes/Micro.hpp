@@ -230,15 +230,17 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            if (drawW < 0.0f)
+            // 放电状态下显示功率，充电状态下只显示百分比
+            if (drawW < -0.01f) // 放电状态（负数）
             {
-                snprintf(Battery_c, sizeof(Battery_c),
+                snprintf(Battery_c, sizeof Battery_c,
                          "%.1f%%%.2f W",
-                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f, drawW);
+                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
+                         drawW);
             }
             else
             {
-                snprintf(Battery_c, sizeof(Battery_c),
+                snprintf(Battery_c, sizeof Battery_c,
                          "%.1f%%",
                          (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
             }
