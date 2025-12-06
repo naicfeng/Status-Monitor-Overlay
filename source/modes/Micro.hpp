@@ -230,7 +230,7 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            if (drawW < 0.01f)
+            if (drawW < 0.0f)
             {
                 snprintf(Battery_c, sizeof(Battery_c),
                          "%.1f%%%.2f W",
