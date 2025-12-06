@@ -230,9 +230,18 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            snprintf(Battery_c, sizeof(Battery_c),
-                     "%.1f%%",
-                     (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
+            if (drawW < 0)
+            {
+                snprintf(Battery_c, sizeof(Battery_c),
+                         "%.1f%%%.2f W",
+                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f, drawW);
+            }
+            else
+            {
+                snprintf(Battery_c, sizeof(Battery_c),
+                         "%.1f%%",
+                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
+            }
         }
     }
 
