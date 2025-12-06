@@ -445,7 +445,14 @@ public:
                     ult::setIniFileValue(configIniPath, section, "battery_only_display_percentage", state ? "true" : "false");
                 });
                 list->addItem(batteryOnlyDisplayPercentage);
+
+                auto* batteryOnlyDisplayPercentageShowPower = new tsl::elm::ToggleListItem("Show Power When Percentage Only", getCurrentBatteryOnlyDisplayPercentageShowPower());
+                batteryOnlyDisplayPercentageShowPower->setStateChangedListener([this, section](bool state) {
+                    ult::setIniFileValue(configIniPath, section, "battery_only_display_percentage_show_power", state ? "true" : "false");
+                });
+                list->addItem(batteryOnlyDisplayPercentageShowPower);
             }
+
 
             auto* dtcSymbol = new tsl::elm::ToggleListItem("Use DTC Symbol", getCurrentUseDTCSymbol());
             dtcSymbol->setStateChangedListener([this, section](bool state) {
@@ -602,6 +609,13 @@ private:
     bool getCurrentBatteryOnlyDisplayPercentage() {
         std::string value = ult::parseValueFromIniSection(configIniPath, "micro", "battery_only_display_percentage");
         if (value.empty()) return false; // Default: false
+        convertToUpper(value);
+        return value != "FALSE";
+    }
+
+    bool getCurrentBatteryOnlyDisplayPercentageShowPower() {
+        std::string value = ult::parseValueFromIniSection(configIniPath, "micro", "battery_only_display_percentage_show_power");
+        if (value.empty()) return true; // Default: true
         convertToUpper(value);
         return value != "FALSE";
     }

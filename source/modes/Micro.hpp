@@ -230,17 +230,16 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            // 放电状态下显示功率，充电状态下只显示百分比
-            if (drawW < -0.01f) // 放电状态（负数）
+            if (settings.batteryOnlyDisplayPercentageShowPower)
             {
-                snprintf(Battery_c, sizeof Battery_c,
+                snprintf(Battery_c, sizeof(Battery_c),
                          "%.1f%%%.2f W",
                          (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
                          drawW);
             }
             else
             {
-                snprintf(Battery_c, sizeof Battery_c,
+                snprintf(Battery_c, sizeof(Battery_c),
                          "%.1f%%",
                          (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
             }
@@ -1061,9 +1060,19 @@ public:
 
         if (settings.batteryOnlyDisplayPercentage)
         {
-            snprintf(Battery_c, sizeof Battery_c,
-                     "%.1f%%",
-                     (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
+            if (settings.batteryOnlyDisplayPercentageShowPower)
+            {
+                snprintf(Battery_c, sizeof(Battery_c),
+                         "%.1f%%%.2f W",
+                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f,
+                         drawW);
+            }
+            else
+            {
+                snprintf(Battery_c, sizeof(Battery_c),
+                         "%.1f%%",
+                         (float)_batteryChargeInfoFields.RawBatteryCharge / 1000.0f);
+            }
         }
 
         mutexUnlock(&mutex_BatteryChecker);

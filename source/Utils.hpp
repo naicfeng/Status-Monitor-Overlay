@@ -1419,6 +1419,7 @@ struct MicroSettings {
     std::string dtcFormat;
     bool invertBatteryDisplay;
     bool batteryOnlyDisplayPercentage;
+    bool batteryOnlyDisplayPercentageShowPower;
     size_t handheldFontSize;
     size_t dockedFontSize;
     uint8_t alignTo;
@@ -1795,6 +1796,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     settings->dtcFormat = "%H:%M:%S";//"%Y-%m-%d %I:%M:%S %p";
     settings->invertBatteryDisplay = false;
     settings->batteryOnlyDisplayPercentage = false;
+    settings->batteryOnlyDisplayPercentageShowPower = false;
     settings->handheldFontSize = 15;
     settings->dockedFontSize = 15;
     settings->alignTo = 1; // CENTER
@@ -1802,7 +1804,7 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
     convertStrToRGBA4444("#888F", &(settings->separatorColor));
     convertStrToRGBA4444("#2DFF", &(settings->catColor));
     convertStrToRGBA4444("#FFFF", &(settings->textColor));
-    settings->show = "FPS+CPU+GPU+RAM+SOC+BAT+DTC";
+    settings->show = "FPS+CPU+GPU+RAM+SOCTEMP+BAT+DTC";
     settings->showRAMLoad = true;
     settings->setPosBottom = false;
     settings->disableScreenshots = false;
@@ -1936,6 +1938,13 @@ ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
         key = it->second;
         convertToUpper(key);
         settings->batteryOnlyDisplayPercentage = (key != "FALSE");
+    }
+
+    it = section.find("battery_only_display_percentage_show_power");;
+    if (it != section.end()) {
+        key = it->second;
+        convertToUpper(key);
+        settings->batteryOnlyDisplayPercentageShowPower = (key != "FALSE");
     }
 
     // Process font sizes with shared bounds
