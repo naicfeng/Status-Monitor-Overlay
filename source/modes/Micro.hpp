@@ -1303,7 +1303,7 @@ public:
         }
 
         // FPS
-        snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", useOldFPSavg ? FPSavg_old : FPSavg);
+        snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.0f", useOldFPSavg ? FPSavg_old : FPSavg);
 
         // Read Speed
         if (GameRunning && NxFps && SharedMemoryUsed)
