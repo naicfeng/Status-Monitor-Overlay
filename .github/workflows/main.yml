@@ -31,7 +31,7 @@ jobs:
       - name: Setup ENV parameters
         run: |
           VER_FILE=Makefile
-          NAME=$(awk -F':=' '/^APP_TITLE/ {gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2; exit}' $VER_FILE)·
+          NAME=$(awk '/^APP_TITLE/{print $3}' $VER_FILE)
           VERSION=$(awk '/^APP_VERSION/{print $3}' $VER_FILE)
           echo "TAG=${VERSION}" >> "${GITHUB_ENV}"
           echo "APP_NAME=${NAME}" >> "${GITHUB_ENV}"
