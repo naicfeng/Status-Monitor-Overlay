@@ -37,13 +37,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   of a homebrew executable (.nro). This is intended to be used for sysmodules.
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
-<<<<<<< HEAD
-APP_TITLE	:=	StatusMonitor
-APP_VERSION	:=	1.3.2+r2
-=======
 APP_TITLE	:=	Status Monitor
 APP_VERSION	:=	1.3.2+r3
->>>>>>> b86d6863452c2ab108c026a854c4ebf4429bc306
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source
